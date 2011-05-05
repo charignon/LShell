@@ -8,9 +8,9 @@
 int main ()
 {
 
-char * command = (char *) malloc (sizeof (char) * 25);
-char * buffer  = (char *) malloc (sizeof (char) * 25);
+char * command; char * buffer ;
 char * args []= {"ls",NULL};
+char * ret_strtok;
 int size_command = 0;
 int n = 0;
 int pid ;
@@ -19,8 +19,14 @@ int pid ;
 printf("Welcome to LSell\n");
 for(;;)
 { 
+  
+  //Acquire the user input
   size_command = 0;
   n = 0;
+  buffer  = (char*)malloc(sizeof(char)*25);
+  command = (char*)malloc(sizeof(char)*25);
+  
+  
   for(;;)
   {
     n = read(1,buffer,25*sizeof(char));
@@ -29,26 +35,44 @@ for(;;)
     size_command+=n;
 
     if (n < 25 || buffer[24]=='\n')
+    {
+      //Remove the trailing \n
+      command[size_command-1]='\0';
       break;
+    }
   }
+
+  free(buffer);
+
+
+  //Parse the arguments
+  ret_strtok = strtok(command," ");
+  int i = 0;
+  while (ret_strtok!=NULL)
+  {
+    args[i++] = ret_strtok;
+    ret_strtok = strtok(NULL," ");
+  }
+
+
+
+
+
   //We have a command to execute
-  printf("%s\n",command); 
-  command[size_command-1]='\0';
   switch(pid = fork())
   {
   case -1 : perror("fork");break;
         
   case 0 : 
-            execvp(command,args);
+            execvp(args[0],args);
             break;
   default : wait(0);break;
   }
 
+  free(command);
   break;
 }
 
-free(buffer);
-free(command);
 
 return EXIT_SUCCESS;
 
